@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USA Spending Award Search</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Keyword Search hosted with Google Clooud</h1>
+       <!-- <a href="http://127.0.0.1:8095" style="color:azure" alt="Drupal Site" target="_blank">Drupal Login</a><br>
+        <a href="http://127.0.0.1:8092" style="color:azure" alt="Adminer Site" target="_blank">Adminer Login</a><br>
+        <a href="http://127.0.0.1:81" style="color:azure" alt="NGINX Site" target="_blank">Proxy-Admin Login</a>
+        -->
+    </header>
+    <main>
+        <div id="form-container" class="form-container">
+            <h2>Search Filters</h2>
+            <form id="searchForm">
+
+                <label for="keyword">Keyword:</label>
+                <input type="text" id="keyword" placeholder="Enter keyword (e.g., Dell or UEI)" minlength="3" required title="Keyword must be at least 3 characters long.">
+
+                <label for="awardType">Award Type:</label>
+                <select id="awardType" required aria-label="Award Type selection">
+                    <option value="">Select Award Type</option>
+                    <option value="all_contracts">All Contracts</option>
+                    <option value="all_grants">All Grants</option>
+                    <option value="all_idvs">All IDVs</option>
+                    <option value="A">BPA</option>
+                    <option value="B">Purchase Order</option>
+                    <option value="C">Delivery Order</option>
+                    <option value="D">Definitive Contract</option>
+                    <option value="02">Block Grant</option>
+                    <option value="03">Formula Grant</option>
+                    <option value="04">Project Grant</option>
+                    <option value="05">Cooperative Agreement</option>
+                    <option value="IDV_A">GWAC</option>
+                    <option value="IDV_B">Indefinite Delivery Vehicle</option>
+                </select>
+
+	<h2>Advanced Filters</h2>
+
+ <!-- Advanced filters are now collapsible October 5th 2025-->
+    <details id="advancedFilters" class="advanced-filters">
+      <summary>Advanced Filters</summary>
+
+       <label for="agencyType">Agency:</label>
+        <select id="agencyType" aria-label="Agency selection">
+            <option value="">Select Agency</option>
+            <option value="Department of Defense">DOD</option>
+            <option value="Department of Energy">DOE</option>
+            <option value="General Services Administration">GSA</option>
+            <option value="Department of Veterans Affairs">VA</option>
+            <option value="Department of Homeland Security">DHS</option>
+            <option value="Department of Agriculture">AG</option>
+            <option value="Social Security Administration">SSA</option>
+            <option value="Department of the Treasury">Treasury</option>
+            
+        </select>
+
+        <label for="subAgencyType">Sub-Agency:</label>
+        <select id="subAgencyType" aria-label="Sub-Agency selection">
+            <option value="">Select Sub-Agency</option>
+            <option value="Federal Acquisition Service">GSA - FAS</option>
+            <option value="Public Buildings Service">GSA - PBS</option>
+            <option value="Federal Energy Regulatory Commission">DOE - FERC</option>
+            <option value="Office of Procurement Operations">DHS - OPO</option>
+            <option value="Internal Revenue Service">TREASURY - IRS</option>
+            <option value="U.S. Coast Guard">DHS - Coast Guard</option>
+            <option value="Defense Information Systems Agency">DOD - DISA</option>
+            <option value="Defense Health Agency">DOD - DHA</option>
+            <option value="Washington Headquarters Services">DOD - WHS</option>
+            <option value="USTRANSCOM">USTRANSCOM</option>		
+            <option value="Missile Defense Agency">DOD - Missile Defense Agency</option>
+            <option value="Department of the Navy">DOD - Department of the Navy</option>
+            <option value="Department of the Air Force">DOD - Department of the Air Force</option>					
+        </select>
+
+        <label for="agencyDetails">Agency Function:</label>
+        <select id="agencyDetails" aria-label="Agency Function selection">
+            <option value="">Select Agency Function</option>
+            <option value="awarding">Awarding</option>
+            <option value="funding">Funding</option>
+        </select>
+        
+        <label for="dateType">Date Type:</label>
+        <select id="dateType" aria-label="Date Type selection"> 
+            <option value="">Select Date Type</option>
+            <option value="action_date">Action Date</option>
+            <option value="date_signed">Date Signed</option>
+            <option value="last_modified_date">Last Modified</option>
+            <option value="new_awards_only">New Awards Only</option>					
+        </select>
+
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" name="startDate" aria-label="Start Date input">
+
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" name="endDate" aria-label="End Date input">
+                
+        <label for="placeOfPerformanceScope">Place of Performance Scope:</label>
+        <select id="placeOfPerformanceScope">
+            <option value="">Select Scope</option>
+            <option value="domestic">Domestic</option>
+            <option value="foreign">Foreign</option>
+        </select> 
+        
+      <label for="recipientSearchText">Recipient Search Text:</label>
+        <input type="text" id="recipientSearchText" placeholder="Enter recipient names separated by commas">
+        
+        <label for="recipientScope">Recipient Scope:</label>
+        <select id="recipientScope">
+            <option value="">Select Scope</option>
+            <option value="domestic">Domestic</option>
+            <option value="foreign">Foreign</option>
+        </select>
+
+    </details>
+
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="loader" style="display: none;"></div> 
+        <div id="resultsContainer" style="display: none;">
+            <h2>Search Results</h2>
+           <!-- <div class="loader" style="display: none;"></div> --> 
+            <p id="totalRecordCount"></p>
+            <div id="recordInfo"></div>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Award ID</th>
+                        <th>Award Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pagination">
+                <button id="prevButton" disabled>Previous</button>
+                <button id="nextButton" disabled>Next</button>
+            </div>
+            <!--<p id="errorMessage" class="error"></p> -->
+            <div id="errorMessage" style="color: red;"></div>
+        </div>
+
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
