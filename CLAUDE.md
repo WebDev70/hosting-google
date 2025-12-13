@@ -6,6 +6,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Node.js/Express application that provides a web interface for searching award data from the USA Spending API. The application uses Express as a proxy server to handle CORS and API requests, serving static HTML/CSS/JS files from the `public` directory.
 
+## Repository
+
+**GitHub Repository**: https://github.com/WebDev70/hosting-google.git
+
+**Cloning the Repository**
+```bash
+git clone https://github.com/WebDev70/hosting-google.git
+cd hosting-google/node
+npm install
+npm start
+```
+
+**Git Workflow Guidelines for AI Assistants**
+- The repository is a standalone Node.js project without submodules
+- Main branch is the primary development and deployment branch
+- All changes should be committed with clear, descriptive messages
+- Include relevant file names in commit messages when multiple files are changed
+- Before pushing changes, ensure:
+  - All dependencies are properly listed in `package.json`
+  - No sensitive information (API keys, credentials) is committed
+  - `.gitignore` prevents `node_modules/` and environment files from being tracked
+- When working on features or bug fixes, create descriptive commit messages that explain the "why" behind changes
+
+**Important Files to Preserve**
+- `CLAUDE.md` and `GEMINI.md` - AI assistant guidance documents (update these when changing project patterns)
+- `CHANGELOG.md` - Version history (update when making significant changes)
+- `docker-compose.yml` and `Dockerfile` - Container configuration
+- `package.json` and `package-lock.json` - Dependency management
+
 ## Project Structure
 
 ```
@@ -24,7 +53,8 @@ node/
 │   ├── script.js              # Client-side logic and API calls
 │   └── style.css              # Styling
 ├── docs/                       # Project documentation
-│   └── quick-start-guide.md    # Installation, deployment, and troubleshooting
+│   ├── DEPLOYMENT.md           # Cloud platform deployment guides (AWS, GCP)
+│   └── quick-start-guide.md    # Installation, configuration, and troubleshooting
 └── node_modules/              # Installed dependencies
 ```
 
@@ -32,10 +62,12 @@ node/
 
 **Server (Node.js + Express)**
 - `server.js` - Express server that:
+  - Reads PORT from environment variable or defaults to 3000: `const port = process.env.PORT || 3000;`
   - Serves static files from `public/` directory
   - Proxies API requests to `https://api.usaspending.gov` via two endpoints:
     - `POST /api/search` - Proxies to `/api/v2/search/spending_by_award/`
     - `POST /api/count` - Proxies to `/api/v2/search/spending_by_award_count/`
+  - Dynamic port configuration enables compatibility with cloud platforms (Cloud Run, Elastic Beanstalk, Heroku)
 
 **Client (Vanilla JavaScript)**
 - `public/index.html` - Form-based UI with search filters for awards
@@ -55,6 +87,20 @@ node/
 5. `renderResults()` populates table with recipient names, award IDs, types, descriptions, and amounts
 6. Dynamic URLs generated for each recipient based on selected filters
 
+## Port Configuration and Environment Variables
+
+**PORT Environment Variable**
+The server uses `process.env.PORT || 3000` for dynamic port configuration. This is critical for cloud platform compatibility:
+- **Local Development**: Defaults to port 3000 when PORT env var is not set
+- **Docker Containers**: Can be overridden via environment variables in compose files or container run commands
+- **Cloud Platforms**:
+  - Google Cloud Run: Dynamically assigns PORT (typically 8080) - application automatically adapts
+  - AWS Elastic Beanstalk: Can set via environment properties
+  - AWS ECS/Fargate: Can set via task definition environment variables
+  - Heroku: Assigns PORT dynamically - application adapts automatically
+
+This design ensures the same codebase works across different deployment environments without modification.
+
 ## Docker Configuration
 
 **Overview**
@@ -65,7 +111,7 @@ The project includes containerization support using Docker for consistent deploy
 - **Multi-stage Best Practices**: Package files copied first to leverage Docker layer caching
 - **Security**: Runs as non-root `node` user instead of root
 - **Production Dependencies**: Uses `npm ci --only=production` for faster, deterministic installs
-- **Port**: Exposes port 3000 (configurable via PORT environment variable)
+- **Port**: Containerized via PORT environment variable (app defaults to 3000, compatible with Cloud Run and other platforms)
 - **Image Size**: Alpine-based images are significantly smaller than full Node.js images
 
 **Docker Compose Configuration**
@@ -94,6 +140,7 @@ The `.dockerignore` file prevents unnecessary files from being copied into the D
 - Non-root user execution improves security by limiting potential damage if the Node.js process is compromised
 - Production environment variable ensures the Express server runs in optimized production mode
 - Alpine Linux base reduces attack surface and resource consumption compared to full Linux distributions
+- Dynamic PORT configuration enables seamless deployment to cloud platforms that assign ports dynamically
 
 ## Common Commands
 
@@ -128,6 +175,18 @@ docker run -p 3000:3000 -d usa-spending-app # Run in detached mode
 
 The `docs/` directory contains comprehensive project documentation for users and administrators:
 
+**DEPLOYMENT.md** - Cloud deployment reference guide containing:
+- AWS Elastic Beanstalk deployment (Node.js platform, no Docker required)
+- AWS ECS/Fargate deployment (Docker-based, with ALB integration)
+- ECS Task Execution Role setup (console and CLI methods)
+- AWS CodePipeline and GitHub Actions CI/CD examples
+- Google Cloud Run deployment (serverless, auto-scaling, dynamic PORT handling)
+- Google App Engine deployment (Flexible Environment)
+- Google Cloud Build CI/CD workflow
+- Security best practices (credentials, AWS Secrets Manager)
+- Cost management guidelines (stopping unused resources)
+- Port configuration notes for Cloud Run and Elastic Beanstalk
+
 **quick-start-guide.md** - Primary reference guide containing:
 - Prerequisites and installation instructions
 - Running and configuring the application
@@ -142,7 +201,7 @@ The `docs/` directory contains comprehensive project documentation for users and
 - Maintenance guidelines and regular task schedules
 - Support resources and help contacts
 
-When working on features, maintenance tasks, or addressing user issues, refer to the quick-start-guide.md for context on deployment, configuration, and troubleshooting procedures.
+When deploying to cloud platforms, refer to DEPLOYMENT.md for detailed instructions. For general configuration, troubleshooting, and maintenance, refer to quick-start-guide.md.
 
 ## Important Implementation Details
 
