@@ -23,7 +23,7 @@ steps:
       - '--allow-unauthenticated'
 
 substitutions:
-  _SERVICE_NAME: USAwardSearch2
+  _SERVICE_NAME: award-search
   _REGION: us-central1
 
 options:
