@@ -9,7 +9,7 @@
 ## Build, Test, and Development Commands
 - `npm install` (or `npm ci` in CI/containers) installs dependencies.
 - `npm start` runs the Express server on `PORT` (defaults to `3000`) and serves `public/`.
-- `docker-compose up --build` builds the image and runs the app as `usa-spending-app`; useful for parity with deployment.
+- `docker compose up --build` builds the image and runs the app as `usa-spending-app`; useful for parity with deployment.
 - `npm test` currently fails by design; replace with real tests before enabling in CI.
 
 ## Coding Style & Naming Conventions

@@ -92,13 +92,13 @@ Docker Compose simplifies container management:
 
 ```bash
 # Start the application
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop the application
-docker-compose down
+docker compose down
 ```
 
 ### Access the Dockerized Application
@@ -139,13 +139,13 @@ If you modify the application code:
 
 ```bash
 # Stop and remove the old container
-docker-compose down
+docker compose down
 
 # Rebuild the image
-docker-compose build
+docker compose build
 
 # Start with the new image
-docker-compose up -d
+docker compose up -d
 ```
 
 Or with manual Docker commands:
@@ -180,7 +180,7 @@ To change the port mapping:
 # Using docker run (change host port, e.g., 8080:3000)
 docker run -d -p 8080:3000 --name awardSearch-googleCloud usa-spending-app
 
-# Using docker-compose (edit docker-compose.yml)
+# Using docker compose (edit docker-compose.yml)
 # Change the ports section to:
 #   ports:
 #     - "8080:3000"
@@ -345,7 +345,7 @@ docker rm awardSearch-googleCloud
 
 # Or remove and restart
 docker rm -f awardSearch-googleCloud
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Docker Build Fails

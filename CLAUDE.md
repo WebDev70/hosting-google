@@ -33,8 +33,11 @@ npm start
 
 **Important Files to Preserve**
 - `CLAUDE.md` and `GEMINI.md` - AI assistant guidance documents (update these when changing project patterns)
+- `AGENTS.md` - Repository guidelines for coding style, testing, commits, and security
 - `CHANGELOG.md` - Version history (update when making significant changes)
 - `docker-compose.yml` and `Dockerfile` - Container configuration
+- `cloudbuild.yaml` - Google Cloud Build CI/CD configuration
+- `GKE_DEPLOYMENT_GUIDE.md` - Google Kubernetes Engine deployment instructions
 - `package.json` and `package-lock.json` - Dependency management
 
 ## Project Structure
@@ -44,14 +47,27 @@ node/
 ├── CLAUDE.md                   # AI assistant guidance document (this file)
 ├── CHANGELOG.md                # Version history and updates
 ├── GEMINI.md                   # Gemini AI assistant guidance
+├── AGENTS.md                   # Repository guidelines (coding style, testing, commits, security)
 ├── .gitignore                  # Git ignore patterns (node_modules, .env, IDE files, logs, etc.)
 ├── .env.example                # Environment variables template (copy to .env for local development)
 ├── Dockerfile                  # Docker container configuration (Node 18 Alpine)
 ├── docker-compose.yml          # Docker Compose setup with health checks
-├── .dockerignore                # Docker build exclude patterns
+├── .dockerignore               # Docker build exclude patterns
+├── cloudbuild.yaml             # Google Cloud Build CI/CD configuration for Cloud Run
+├── GKE_DEPLOYMENT_GUIDE.md     # Google Kubernetes Engine deployment instructions
 ├── server.js                   # Express server with API proxy endpoints
 ├── package.json                # Project dependencies and scripts
 ├── package-lock.json           # Locked dependency versions
+├── .claude/                    # Claude Code custom agents and skills
+│   ├── agents/                # Custom agents for automation
+│   │   ├── changelog-maintainer.md
+│   │   ├── claude-md-updater.md
+│   │   ├── quickstart-updater.md
+│   │   ├── docker-config-validator.md
+│   │   └── conversation-logger.md
+│   └── skills/                # Custom skills for domain knowledge
+│       ├── usaspending-api-helper/
+│       └── env-var-manager/
 ├── public/                     # Static files served to browser
 │   ├── index.html             # Main UI with search form
 │   ├── script.js              # Client-side logic and API calls
@@ -59,7 +75,9 @@ node/
 ├── docs/                       # Project documentation
 │   ├── ENVIRONMENT-VARIABLES.md # Environment variables guide and setup instructions
 │   ├── DEPLOYMENT.md           # Cloud platform deployment guides (AWS, GCP)
-│   └── quick-start-guide.md    # Installation, configuration, and troubleshooting
+│   ├── quick-start-guide.md    # Installation, configuration, and troubleshooting
+│   ├── quick-start-guide2.md   # Alternative simplified quick start guide
+│   └── logs/                   # Log files directory
 └── node_modules/              # Installed dependencies
 ```
 
@@ -182,11 +200,11 @@ npm install            # Install dependencies (express, axios)
 **Docker (Containerized)**
 ```bash
 # Build and run with Docker Compose (recommended)
-docker-compose up                 # Build and start container with health checks
-docker-compose up -d              # Start in detached mode (background)
-docker-compose down               # Stop and remove container
-docker-compose logs -f            # Follow container logs
-docker-compose ps                 # Show running containers
+docker compose up                 # Build and start container with health checks
+docker compose up -d              # Start in detached mode (background)
+docker compose down               # Stop and remove container
+docker compose logs -f            # Follow container logs
+docker compose ps                 # Show running containers
 
 # Manual Docker build and run
 docker build -t usa-spending-app . # Build image with tag
@@ -246,6 +264,46 @@ The `docs/` directory contains comprehensive project documentation for users and
 
 When setting up the application or adding environment variables, refer to ENVIRONMENT-VARIABLES.md. When deploying to cloud platforms, refer to DEPLOYMENT.md for detailed instructions. For general configuration, troubleshooting, and maintenance, refer to quick-start-guide.md.
 
+**quick-start-guide2.md** - Alternative simplified quick start guide containing:
+- Streamlined installation instructions
+- Basic prerequisites (Node.js, Git, npm)
+- Quick setup commands (clone, install, start)
+- First steps for accessing the application
+- Common troubleshooting issues
+
+## Additional Project Files
+
+**AGENTS.md** - Repository guidelines for contributors and AI assistants containing:
+- Project structure and module organization principles
+- Build, test, and development commands
+- Coding style and naming conventions (CommonJS, camelCase, semicolons)
+- Testing guidelines (currently no tests, recommendations for Jest + Supertest)
+- Commit and pull request best practices
+- Security and configuration standards
+- Emphasis on validating request payloads before proxying to upstream APIs
+
+**cloudbuild.yaml** - Google Cloud Build CI/CD configuration containing:
+- Automated Docker image build steps using `gcr.io/cloud-builders/docker`
+- Container image push to Google Container Registry (GCR)
+- Automated deployment to Google Cloud Run using gcloud SDK
+- Substitution variables for service name (`award-search`) and region (`us-central1`)
+- Platform configuration for managed Cloud Run with unauthenticated access
+- Cloud logging configuration
+
+**GKE_DEPLOYMENT_GUIDE.md** - Google Kubernetes Engine deployment guide containing:
+- One-time Google Cloud and local environment setup
+- GKE cluster creation instructions (2-node e2-medium cluster)
+- Artifact Registry repository creation for Docker images
+- Docker authentication configuration for Artifact Registry
+- Instructions for converting docker-compose.yml to Kubernetes manifests using kompose
+- Kubernetes deployment and service manifest creation for Node.js app
+- Build and push workflows for Docker images to Artifact Registry
+- kubectl commands for deploying to GKE and verifying deployments
+- Service exposure via LoadBalancer for public access
+- Note: This guide also references Drupal applications which may be part of a larger multi-app deployment strategy
+
+When setting up CI/CD, refer to cloudbuild.yaml for Cloud Build configuration. For Kubernetes deployments, refer to GKE_DEPLOYMENT_GUIDE.md. For general repository conventions and coding standards, refer to AGENTS.md.
+
 ## Custom AI Agents
 
 This project includes custom Claude agents defined in `.claude/agents/` directory that automate documentation, validation, and logging tasks. These agents enhance development workflow by automatically maintaining documentation accuracy and validating configurations.
@@ -258,6 +316,7 @@ This project includes custom Claude agents defined in `.claude/agents/` director
 | **claude-md-updater** | Updates CLAUDE.md with architecture/structure changes | After creating files, changing patterns, adding dependencies |
 | **quickstart-updater** | Updates docs/quick-start-guide.md with setup/installation changes | After modifying setup procedures or dependencies |
 | **docker-config-validator** | Validates Dockerfile and docker-compose.yml match application requirements | After code changes affecting Docker configs, new dependencies |
+| **cloudbuild-updater** | Updates cloudbuild.yaml to align with project changes | After dependency updates, Docker config changes, environment variables, build scripts |
 | **conversation-logger** | Archives conversation sessions with timestamps and structured summaries | After significant work sessions, on user request |
 
 ### 1. changelog-maintainer
@@ -387,7 +446,7 @@ This project includes custom Claude agents defined in `.claude/agents/` director
 **Proactive Invocation**: These agents are designed to be invoked proactively after completing work. When an assistant completes implementation, bug fixes, or significant changes, it should consider whether any of these agents should be triggered.
 
 **Model Usage**:
-- `changelog-maintainer`, `claude-md-updater`, `quickstart-updater`, `conversation-logger`: Run on Haiku model
+- `changelog-maintainer`, `claude-md-updater`, `quickstart-updater`, `cloudbuild-updater`, `conversation-logger`: Run on Haiku model
 - `docker-config-validator`: Runs on Opus model for deeper analysis
 
 **Benefits**:
@@ -396,6 +455,36 @@ This project includes custom Claude agents defined in `.claude/agents/` director
 - Ensures consistency across documentation
 - Maintains accurate project context for future AI assistance
 - Creates searchable records of technical decisions
+
+### 6. cloudbuild-updater
+
+**File**: `.claude/agents/cloudbuild-updater.md`
+
+**Purpose**: Maintains `cloudbuild.yaml` in perfect alignment with project requirements for Google Cloud Build CI/CD pipeline.
+
+**Invokes When**:
+- Project dependencies are added, updated, or removed in package.json
+- Build processes, scripts, or compilation steps are modified
+- Deployment configurations change (Docker, environment variables, port settings)
+- New files or directories are added that affect the build pipeline
+- Testing frameworks or test scripts are updated
+- Static asset handling or public directory structure changes
+- Application startup commands or entry points are modified
+- Docker configurations (Dockerfile, docker-compose.yml) are updated
+- Environment variable requirements change
+- Cloud platform deployment settings are adjusted
+
+**How It Works**:
+- Analyzes project changes to identify build pipeline impacts
+- Leverages `google-cloud-build-expert` skill for Cloud Build expertise
+- Reviews current cloudbuild.yaml configuration
+- Determines required updates for build steps, environment variables, deployment settings
+- Ensures consistency with Dockerfile, docker-compose.yml, and package.json
+- Validates Cloud Run deployment configurations and health checks
+- Implements Cloud Build best practices (caching, timeouts, substitution variables)
+- Provides verification checklist to ensure completeness
+
+**Output Format**: Analysis summary, required updates with rationale, complete updated cloudbuild.yaml with comments, and verification checklist.
 
 **Note**: When working with these agents, focus on accuracy and comprehensiveness. The agents should be invoked even if changes seem minor, as small structural changes can benefit from being documented.
 
@@ -409,6 +498,12 @@ This project includes custom Claude skills defined in `.claude/skills/` director
 |-------|---------|---------------------|
 | **usaspending-api-helper** | Expert knowledge of USA Spending API integration | Modifying API requests, adding filters, debugging API responses, extending search functionality |
 | **env-var-manager** | Environment variable management across all project files | Adding environment variables, updating configuration, modifying deployment settings |
+| **google-cloud-build-expert** | Expert knowledge of Google Cloud Build CI/CD pipelines | Working with cloudbuild.yaml, build steps, Cloud Run deployment, troubleshooting pipelines |
+| **docker-containerization-expert** | Expert knowledge of Docker containerization and optimization | Working with Dockerfile, docker-compose.yml, container builds, debugging containers, deploying to container platforms |
+| **express-nodejs-expert** | Expert knowledge of Express.js and Node.js web applications | Working with server.js, adding routes, implementing middleware, debugging Express issues, optimizing API endpoints |
+| **web-security-expert** | Expert knowledge of web application security and OWASP Top 10 | Implementing security features, reviewing code for vulnerabilities, adding authentication, validating input, addressing security concerns |
+| **testing-best-practices** | Expert knowledge of testing Node.js/Express applications | Writing tests, setting up Jest/Supertest, debugging test failures, adding test coverage, configuring CI/CD testing |
+| **frontend-api-integration** | Expert knowledge of vanilla JavaScript for frontend API integration | Working with public/script.js, adding UI features, debugging client-side API issues, implementing forms, managing client-side state |
 
 ### 1. usaspending-api-helper
 
@@ -479,6 +574,250 @@ This project includes custom Claude skills defined in `.claude/skills/` director
 - Standardizes documentation format across the project
 
 **Usage**: When adding or modifying environment variables, Claude will automatically use this skill to ensure all necessary files are updated, documentation is complete, and security best practices are followed.
+
+### 3. google-cloud-build-expert
+
+**File**: `.claude/skills/google-cloud-build-expert/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of Google Cloud Build for CI/CD pipeline configuration, Docker image building, and automated deployment to Google Cloud services.
+
+**Auto-Activates When**:
+- Working with cloudbuild.yaml configuration files
+- Troubleshooting Cloud Build pipelines or deployment issues
+- Configuring build steps and builder images
+- Setting up Cloud Run deployments via Cloud Build
+- Implementing substitution variables or build triggers
+- Configuring secrets and environment variables in builds
+- Optimizing build performance with caching strategies
+- Debugging build failures or timeout issues
+
+**Key Knowledge Provided**:
+- **cloudbuild.yaml Syntax**: Complete file format, structure, and configuration options
+- **Build Steps**: Common builder images (docker, gcloud, npm, git), step dependencies with waitFor
+- **Substitution Variables**: Built-in variables ($PROJECT_ID, $COMMIT_SHA) and custom substitutions
+- **Docker Image Building**: Build patterns, multi-tagging, Artifact Registry, build arguments
+- **Cloud Run Deployment**: Deployment configurations, environment variables, secrets, resource limits
+- **Build Optimization**: Caching strategies, parallel builds, timeout management
+- **Secrets Management**: Secret Manager integration, encrypted variables
+- **Build Triggers**: GitHub triggers, conditional steps, branch/tag filtering
+- **Service Accounts**: IAM roles required for builds and deployments
+- **Best Practices**: Specific image tags, fail-fast strategies, appropriate timeouts, logging configuration
+- **Common Patterns**: Multi-environment deployments, shell scripts, testing before deploy
+- **Troubleshooting**: Common errors, debugging techniques, local testing
+
+**Benefits**:
+- Ensures correct Cloud Build syntax and configuration
+- Provides comprehensive deployment patterns for Cloud Run
+- Accelerates troubleshooting of build pipeline issues
+- Maintains Cloud Build best practices across the project
+- Referenced by cloudbuild-updater agent for expert knowledge
+
+**Usage**: Simply work with Cloud Build configurations or ask questions about Google Cloud Build, and Claude will automatically use this skill to provide accurate, expert guidance. The cloudbuild-updater agent leverages this skill when analyzing and updating cloudbuild.yaml.
+
+### 4. docker-containerization-expert
+
+**File**: `.claude/skills/docker-containerization-expert/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of Docker containerization for Node.js applications, with emphasis on production-ready configurations, security best practices, and cloud platform deployment.
+
+**Auto-Activates When**:
+- Working with Dockerfile or docker-compose.yml files
+- Building or optimizing Docker images
+- Debugging container issues or failures
+- Implementing health checks or security configurations
+- Deploying to container platforms (Cloud Run, GKE, ECS)
+- Troubleshooting container networking or volumes
+- Optimizing image size or build performance
+- Configuring container registries (GCR, Artifact Registry, Docker Hub)
+
+**Key Knowledge Provided**:
+- **Dockerfile Best Practices**: Multi-stage builds, layer caching, Alpine Linux specifics, security patterns
+- **docker-compose.yml Configuration**: Service definitions, health checks, restart policies, volumes, networks, resource limits
+- **Alpine Linux**: Package management (apk), common issues, native dependencies, shell compatibility
+- **Security**: Non-root users, image scanning, minimal images, read-only filesystems, runtime security options
+- **npm Optimization**: npm ci vs install, caching strategies, production dependencies
+- **Health Checks**: HTTP/TCP/custom checks, interval tuning, readiness vs liveness probes
+- **Container Registry**: GCR, Artifact Registry, Docker Hub, private registries, authentication
+- **Cloud Platform Deployment**: Cloud Run PORT behavior, GKE manifests, ECS task definitions
+- **Debugging**: Common issues (exits, ports, permissions, OOM), interactive debugging, build debugging
+- **Performance Optimization**: Image size reduction, build speed, runtime performance, resource allocation
+- **Best Practices**: Complete checklist for Dockerfile, docker-compose, security, and cloud deployment
+
+**Benefits**:
+- Ensures Docker configurations follow industry best practices
+- Provides security-first containerization patterns
+- Optimizes image size and build performance
+- Accelerates debugging of container issues
+- Maintains consistency across local development and cloud deployments
+- Referenced by docker-config-validator agent for container expertise
+
+**Usage**: Work with Docker files or ask about containerization, and Claude will automatically use this skill to provide expert guidance on Docker best practices, security, and optimization tailored to Node.js applications.
+
+### 5. express-nodejs-expert
+
+**File**: `.claude/skills/express-nodejs-expert/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of Express.js web framework and Node.js runtime for building robust, secure, and performant web applications and API servers.
+
+**Auto-Activates When**:
+- Working with server.js or Express application files
+- Adding or modifying API routes and endpoints
+- Implementing middleware or request handlers
+- Debugging Express-related issues or errors
+- Optimizing API performance or response times
+- Configuring security headers or CORS
+- Implementing error handling patterns
+- Setting up proxy endpoints with axios
+- Testing Express applications
+
+**Key Knowledge Provided**:
+- **Express Application Structure**: Setup, middleware ordering, production-ready configurations
+- **Middleware Patterns**: Built-in middleware (json, urlencoded, static), custom middleware, async middleware, error handling
+- **Routing Best Practices**: Route organization, parameter handling, RESTful patterns, router modules
+- **Async/Await Error Handling**: Try-catch patterns, async wrapper utilities, express-async-errors, custom error classes
+- **Request/Response Patterns**: Request properties, response methods, status codes, headers management
+- **Proxy Patterns with Axios**: Basic proxying, header forwarding, retry logic, request validation
+- **Security Best Practices**: Helmet configuration, CORS setup, rate limiting, input validation, parameter pollution prevention
+- **Performance Optimization**: Compression, caching headers, connection pooling, response time tracking
+- **Production Configuration**: Environment-based config, graceful shutdown, logging (Winston, Morgan)
+- **Testing**: Jest and Supertest setup, API testing patterns, mocking external APIs
+- **Common Issues**: Headers already sent, middleware ordering, CORS errors, body parser configuration, next() forgotten
+
+**Benefits**:
+- Ensures Express applications follow framework best practices
+- Provides production-ready security and error handling patterns
+- Accelerates debugging of common Express issues
+- Optimizes API performance and reliability
+- Maintains consistent code quality across routes and middleware
+- Comprehensive proxy pattern knowledge for API integration
+
+**Usage**: Work with Express code, add routes, or debug API issues, and Claude will automatically use this skill to provide expert guidance on Express.js and Node.js best practices, security patterns, and performance optimization.
+
+### 6. web-security-expert
+
+**File**: `.claude/skills/web-security-expert/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of web application security for Node.js/Express applications, with emphasis on preventing common vulnerabilities, implementing defense-in-depth strategies, and following security best practices.
+
+**Auto-Activates When**:
+- Implementing authentication or authorization features
+- Reviewing code for security vulnerabilities
+- Adding input validation or sanitization
+- Implementing API security (API keys, rate limiting)
+- Configuring security headers or CORS
+- Managing secrets and credentials
+- Addressing security concerns or incidents
+- Validating user input before proxying requests
+- Setting up session management
+- Implementing password policies
+
+**Key Knowledge Provided**:
+- **OWASP Top 10 Vulnerabilities**: Complete coverage with prevention patterns for each vulnerability including broken access control, cryptographic failures, injection attacks, insecure design, security misconfiguration, vulnerable components, authentication failures, software integrity failures, logging failures, and SSRF
+- **Input Validation and Sanitization**: express-validator, Joi schemas, XSS prevention, SQL/NoSQL injection prevention, command injection protection
+- **Authentication and Authorization**: JWT implementation, session management, password hashing (bcrypt), secure token generation, password reset flows, role-based access control
+- **Secrets Management**: Environment variables, cloud secret managers (Google Secret Manager, AWS Secrets Manager), key rotation, secure storage
+- **Security Headers**: Complete Helmet configuration, CSP directives, HSTS, referrer policy, frame options
+- **API Security**: API key management, rate limiting per key, request validation, CORS configuration
+- **Cryptography**: Password hashing, data encryption/decryption, secure random generation, algorithm selection
+- **Session Security**: httpOnly/secure/sameSite cookies, Redis-based sessions, session invalidation
+- **Proxy Security**: URL validation, SSRF prevention, allowlist patterns, request sanitization before proxying
+- **Security Testing**: Test patterns for SQL injection, XSS, authentication, authorization, rate limiting
+- **Security Checklist**: Complete pre-deployment security verification checklist
+
+**Benefits**:
+- Ensures applications follow OWASP security guidelines
+- Prevents common vulnerabilities (injection, XSS, broken auth, etc.)
+- Provides production-ready security implementations
+- Accelerates security code reviews
+- Maintains defense-in-depth approach
+- Critical for API proxy applications that forward user input
+
+**Usage**: Work on security features, validate user input, or review code for vulnerabilities, and Claude will automatically use this skill to provide expert security guidance aligned with OWASP standards and industry best practices. Particularly important for this project's API proxy patterns where user input is forwarded to external APIs.
+
+### 7. testing-best-practices
+
+**File**: `.claude/skills/testing-best-practices/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of testing Node.js/Express applications with emphasis on Jest and Supertest, test organization, mocking strategies, and achieving comprehensive test coverage.
+
+**Auto-Activates When**:
+- Writing unit, integration, or E2E tests
+- Setting up Jest or Supertest testing framework
+- Debugging test failures or flaky tests
+- Adding test coverage to existing code
+- Mocking external APIs or databases
+- Configuring CI/CD test pipelines
+- Organizing test suites and fixtures
+- Testing async operations or promises
+- Implementing TDD (Test-Driven Development)
+
+**Key Knowledge Provided**:
+- **Jest Configuration**: Setup, jest.config.js options, test environment, coverage thresholds, test patterns
+- **Supertest for API Testing**: HTTP request testing, authentication testing, status code assertions, response validation
+- **Test Directory Structure**: Separate test directories, co-located tests, __tests__ conventions
+- **Mocking Strategies**: Mocking axios/external APIs, database mocking, environment variable mocking, module mocking
+- **Test Types**: Unit tests (isolated functions), integration tests (multiple components), E2E tests (full workflows with Puppeteer)
+- **Test Organization**: Describe blocks, beforeAll/afterAll/beforeEach/afterEach hooks, test fixtures, AAA pattern
+- **Async Testing**: Testing promises, async/await patterns, callback testing, handling rejections
+- **Code Coverage**: Generating reports, coverage configuration, thresholds, HTML reports, LCOV for CI
+- **Testing Proxy Endpoints**: Mocking axios, testing success/error cases, validating request forwarding
+- **Best Practices**: Naming conventions, testing one thing, avoiding interdependence, meaningful assertions, edge cases
+- **CI/CD Integration**: GitHub Actions workflows, npm scripts for CI, coverage upload to Codecov
+- **Jest Matchers**: Equality, truthiness, numbers, strings, arrays, objects, functions, custom matchers
+- **Testing Checklist**: Comprehensive pre-deployment test verification
+
+**Benefits**:
+- Ensures code reliability through comprehensive testing
+- Provides production-ready test patterns for Express APIs
+- Accelerates test writing with proven examples
+- Maintains high code coverage standards
+- Critical for projects currently lacking tests (AGENTS.md notes "no automated tests exist yet")
+- Integrates seamlessly with CI/CD pipelines
+
+**Usage**: Write tests, set up testing framework, or debug test issues, and Claude will automatically use this skill to provide expert guidance on Jest/Supertest best practices, mocking strategies, and test organization patterns tailored to Express applications and API proxies.
+
+### 8. frontend-api-integration
+
+**File**: `.claude/skills/frontend-api-integration/SKILL.md`
+
+**Purpose**: Provides comprehensive expert knowledge of vanilla JavaScript for frontend API integration, with emphasis on modern async patterns, form handling, DOM manipulation, and user experience best practices.
+
+**Auto-Activates When**:
+- Working with public/script.js or frontend JavaScript files
+- Adding UI features or components
+- Debugging client-side API integration issues
+- Implementing form validation and submission
+- Managing pagination or infinite scroll
+- Handling loading states and user feedback
+- Building query parameters or filter objects
+- Implementing debouncing or throttling
+- Managing client-side state with localStorage/sessionStorage
+- Creating dynamic URLs
+
+**Key Knowledge Provided**:
+- **Fetch API Patterns**: Modern fetch with async/await, authentication headers, timeout handling, retry logic
+- **Async/Await Error Handling**: Try-catch patterns, error display, retry mechanisms, promise chaining
+- **Form Handling**: Form validation, submission, real-time validation, extracting FormData, preventing double submission
+- **Pagination Implementation**: Basic pagination, page number rendering, offset calculations, button state management
+- **Loading States**: Spinner patterns, skeleton screens, progress indicators, UX feedback
+- **DOM Manipulation**: Creating elements, template literals, table rendering, escaping HTML for XSS prevention
+- **Event Listeners**: Event delegation, debouncing user input, throttling scroll events, cleanup
+- **Query Parameter Building**: URLSearchParams, building filter objects from form inputs, handling arrays and empty values
+- **Dynamic URL Generation**: Building parameterized URLs, fiscal year calculations, recipient links
+- **Error Handling**: Toast notifications, modal dialogs, global error handlers
+- **Local Storage**: Saving/loading state, session storage, persisting user preferences
+- **Best Practices**: Caching DOM elements, event delegation, memory leak prevention, progressive enhancement
+- **Performance Optimization**: Lazy loading images, virtual scrolling, IntersectionObserver
+
+**Benefits**:
+- Ensures modern JavaScript patterns without frameworks
+- Provides production-ready vanilla JS implementations
+- Optimizes user experience with proper loading states
+- Prevents common pitfalls (memory leaks, XSS, race conditions)
+- Directly applicable to public/script.js patterns
+- Comprehensive form and pagination patterns
+
+**Usage**: Work with frontend JavaScript, add UI features, or debug client-side issues, and Claude will automatically use this skill to provide expert guidance on vanilla JavaScript best practices, async patterns, and modern DOM manipulation techniques tailored to API-driven single-page applications.
 
 ## Important Implementation Details
 

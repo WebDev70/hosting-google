@@ -336,7 +336,7 @@ Follow the existing structure in `docs/ENVIRONMENT-VARIABLES.md`:
 
 ### Variable Not Available in Docker
 1. Check variable is defined in `docker-compose.yml` environment section
-2. Rebuild container: `docker-compose up --build`
+2. Rebuild container: `docker compose up --build`
 3. Check variable in running container: `docker exec container_name env | grep VARIABLE`
 
 ### Wrong Default Value Used
@@ -382,7 +382,7 @@ npm start
 VARIABLE_NAME=value npm start
 
 # Docker Compose with custom env file
-docker-compose --env-file .env.production up
+docker compose --env-file .env.production up
 
 # Check variable in Docker container
 docker exec usa-spending-search env | grep VARIABLE_NAME

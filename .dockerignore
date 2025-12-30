@@ -12,14 +12,14 @@ docs
 .gitignore
 
 # IDE
-.vscode
-.idea
+# .vscode
+# .idea
 *.swp
 *.swo
 
 # OS files
 .DS_Store
-Thumbs.db
+# Thumbs.db
 
 # Docker
 Dockerfile
@@ -27,7 +27,7 @@ Dockerfile
 docker-compose.yml
 
 # Logs
-logs
+# logs
 *.log
 
 # Environment files
